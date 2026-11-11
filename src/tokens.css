@@ -1,0 +1,105 @@
+/* Design tokens, adapted from toolhub-evolved (GPL-3.0-or-later):
+   https://github.com/schiste/toolhub-evolved  ->  public_html/styles/tokens.css
+   Palette: Wikimedia 2022 brand colors https://meta.wikimedia.org/wiki/Brand/colors
+
+   Layers: 1. raw brand palette (--wmf-*)  2. semantic tokens (--color-*, --space-*, ...)
+   Build components on layer 2 (Tailwind utilities map onto it, see tailwind.config.js).
+   `data-theme` on <html> switches the dark values below (see src/plugins/theme.js). */
+:root {
+  /* 1. Raw brand palette */
+  --wmf-white: #ffffff;
+  --wmf-green-aaa: #246342;
+  --wmf-blue-aaa: #0c57a8;
+  --wmf-red-aaa: #970302;
+  --wmf-orange: #ee8019;
+  --wmf-yellow: #f0bc00;
+  --wmf-purple: #5748b5;
+  --wmf-red-light: #e5c0c0;
+  --wmf-orange-light: #fbdfc5;
+  --wmf-green-light: #cbe0d5;
+
+  /* 2. Semantic tokens */
+  --topbar-h: 3.5rem; /* fixed height of the top bar: sticky elements offset themselves with it */
+  --color-surface: var(--wmf-white);
+  --color-surface-muted: #f4f5f7;
+  --color-row-hover: rgb(0 0 0 / 0.02);
+  --color-border: #d4d7db;
+  --color-border-hover: #b9c6e6;
+  --color-text: #1b1b1b;
+  --color-text-secondary: #54595d;
+  --color-text-muted: #5c6066;
+  --color-progressive: var(--wmf-blue-aaa);
+  --color-progressive-hover: #09437f;
+  --color-progressive-subtle: #e7f0fa;
+  --color-interactive-subtle: #dbe7ff;
+  --color-success: var(--wmf-green-aaa);
+  --color-success-subtle: var(--wmf-green-light);
+  --color-destructive: var(--wmf-red-aaa);
+  --color-destructive-subtle: var(--wmf-red-light);
+  --color-warning: var(--wmf-orange);
+  --color-warning-subtle: var(--wmf-orange-light);
+  --color-warning-text: #8a4b08;
+
+  --font-sans: system-ui, -apple-system, 'Segoe UI', roboto, 'Helvetica Neue', 'Noto Sans', arial,
+    sans-serif;
+  --font-serif: 'Linux Libertine', georgia, 'Times New Roman', 'Noto Serif', serif;
+  --font-mono: ui-monospace, sfmono-regular, menlo, consolas, monospace;
+
+  --fs-micro: 11px;
+  --fs-caption: 13px;
+  --fs-small: 14px;
+  --fs-body: 16px;
+  --fs-subtitle: 21px;
+  --fs-title: 26px;
+  --fs-display: 42px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 13px;
+  --space-4: 21px;
+  --space-5: 34px;
+  --space-6: 56px;
+
+  /* Squared design */
+  --radius: 0;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-hover: 0 6px 18px rgb(0 0 0 / 0.1);
+  --shadow-modal: 0 21px 64px rgb(0 0 0 / 0.3);
+  --focus-ring: 0 0 0 3px var(--color-interactive-subtle);
+
+  --ctl-h-sm: 28px;
+  --ctl-h-md: 34px;
+  --ctl-h-lg: 42px;
+
+  /* Corner-bracket card (toolhub "tcard") */
+  --tcard-corner-color: var(--color-border);
+  --tcard-corner-color-hover: var(--color-border-hover);
+  --tcard-corner-color-focus: var(--color-progressive);
+  --tcard-corner-length: 16px;
+  --tcard-corner-width: 1px;
+}
+
+:root[data-theme='dark'] {
+  --color-surface: #111418;
+  --color-surface-muted: #1d2422;
+  --color-row-hover: rgb(255 255 255 / 0.06);
+  --color-border: #3b443f;
+  --color-border-hover: #60789e;
+  --color-text: #f4f4f4;
+  --color-text-secondary: #c8ccd3;
+  --color-text-muted: #a8afb8;
+  --color-progressive: #7ab7f2;
+  --color-progressive-hover: #a7d0ff;
+  --color-progressive-subtle: #172d46;
+  --color-interactive-subtle: #2b527e;
+  --color-success: #83d6a5;
+  --color-success-subtle: #153524;
+  --color-destructive: #ff9b95;
+  --color-destructive-subtle: #3f1d1f;
+  --color-warning: #f0bc00;
+  --color-warning-subtle: #3b2a14;
+  --color-warning-text: #ffd27a;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-hover: 0 8px 24px rgb(0 0 0 / 0.45);
+  --shadow-modal: 0 24px 72px rgb(0 0 0 / 0.65);
+}

@@ -1,0 +1,56 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+a {
+  color: var(--color-progressive);
+}
+
+a:hover {
+  color: var(--color-progressive-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-progressive);
+  outline-offset: 1px;
+}
+
+.page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* Utility classes the lingua-deck views use (WmfrView) */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 16px;
+}
+
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
