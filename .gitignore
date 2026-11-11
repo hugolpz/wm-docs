@@ -1,0 +1,8 @@
+node_modules
+dist
+__pycache__/
+
+# Raw sources downloaded by the group pipelines (regenerable: make -f module/<group>/master.mk)
+module/*/sources/pdfs/
+module/*/sources/*.pdf
+module/*/sources/meta_expenses.json
