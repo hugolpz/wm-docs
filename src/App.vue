@@ -5,7 +5,15 @@
   <main id="wmg-main">
     <router-view />
   </main>
+  <ToolCounter id="wmg-toolcounter" :page="String(route.name || 'home')" />
 </template>
+
+<script setup>
+import { useRoute } from 'vue-router';
+import ToolCounter from './components/ToolCounter.vue';
+
+const route = useRoute();
+</script>
 
 <style scoped>
 .header {
