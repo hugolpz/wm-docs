@@ -21,18 +21,17 @@
           <div class="intro-text">
           <p>
             Via Wikimédia France nous soutenons les projets collaboratifs libres (Wikipédia, Wikimedia Commons, Wikidata,
-            Wikisource…), les communautés et les contributrices et contributeurs qui les font vivre. Cette action n'existe que par la générosité des bénévoles, donatrices et donateurs, membres et partenaires.
+            Wikisource…), les communautés, les contributrices et contributeurs qui les font vivre. Cette action n'existe que par la générosité des bénévoles, donatrices et donateurs, membres et partenaires.
           </p>
           <p>
             Cette confiance appelle de la transparence. Depuis 2019, toutes les dépenses de l'association sont publiques
             <sup><a id="wmg-wmfr-spendings-intro-ref-1" href="#wmg-wmfr-spendings-intro-note-1" @click.prevent="scrollToNote('wmg-wmfr-spendings-intro-note-1')">[1]</a></sup>.
-            Chaque mois d'octobre, elles sont publiées sur Wikimedia Commons sous la forme de PDF mensuels publics mais peu digestes
+            Chaque mois d'octobre elles sont publiées sur Wikimedia Commons sous la forme de PDF mensuels publics mais peu digestes
             <sup><a id="wmg-wmfr-spendings-intro-ref-2" href="#wmg-wmfr-spendings-intro-note-2" @click.prevent="scrollToNote('wmg-wmfr-spendings-intro-note-2')">[2]</a></sup>.
           </p>
           <p>
-            Pour que chacun puisse s'y retrouver, ces données sont extraites et réunies ci-dessous en une base légère, facilement            explorable et partageable. Elle montre comment <strong id="wmg-wmfr-spendings-intro-total">{{ introTotal }}</strong>
-            ont été mis au service de <strong id="wmg-wmfr-spendings-intro-projects">{{ introProjects }}</strong> projets
-            et actions, de {{ introFirstYear }} à {{ introLastYear }}. Elle nous aide aussi à relire nos choix et à améliorer nos pratiques. Filtrez par colonne, par expression régulière ou par trimestre, puis partagez le lien ou exportez le résultat.
+            Pour que chacun puisse s'y retrouver, ces données sont extraites et réunies ci-dessous en une base de données légère, facilement explorable et partageable. Elle montre comment <strong id="wmg-wmfr-spendings-intro-total">{{ introTotal }}</strong>
+            ont été mis au service de <strong id="wmg-wmfr-spendings-intro-projects">{{ introProjects }}</strong> projets et <strong id="wmg-wmfr-spendings-intro-actions">{{ introActions }}</strong> actions, de {{ introFirstYear }} à {{ introLastYear }}. Elle nous aide aussi à examiner nos choix et à améliorer nos pratiques. Filtrez par colonne, par expression régulière ou par trimestre, puis partagez le lien ou exportez le résultat.
           </p>
 
           <ol class="intro-notes">
@@ -51,14 +50,17 @@
 
           <div class="intro-side">
           <div id="wmg-wmfr-spendings-intro-kpis" class="kpis">
+            <div id="wmg-wmfr-spendings-intro-kpi-sources" class="kpi">
+              <strong>{{ kpiSources }}</strong> documents financiers analysés
+            </div>
             <div id="wmg-wmfr-spendings-intro-kpi-total" class="kpi">
               <strong>{{ kpiTotal }}</strong> réinvesti
             </div>
             <div id="wmg-wmfr-spendings-intro-kpi-projects" class="kpi">
               <strong>{{ kpiProjects }}</strong> projets soutenus
             </div>
-            <div id="wmg-wmfr-spendings-intro-kpi-sources" class="kpi">
-              <strong>{{ kpiSources }}</strong> documents financiers analysés
+            <div id="wmg-wmfr-spendings-intro-kpi-actions" class="kpi">
+              <strong>{{ kpiActions }}</strong> actions menées
             </div>
           </div>
           <p id="wmg-wmfr-spendings-intro-kpi-range" class="kpis-range">De {{ kpiFrom }} à {{ kpiTo }}.</p>
@@ -68,7 +70,7 @@
       </details>
 
       <div class="subtitle-row">
-        <p class="subtitle">{{ paginatedData.length }} résultats affichées parmis {{ filteredData.length }} disponibles</p>
+        <p class="subtitle">{{ paginatedData.length }} dépenses affichées parmis {{ filteredData.length }} documentées</p>
         <div id="wmg-wmfr-spendings-tools" class="tools">
           <label id="wmg-wmfr-spendings-regex" class="regex-toggle" title="Treat the filters as case-insensitive regular expressions">
             <input v-model="useRegex" type="checkbox" />
@@ -304,9 +306,12 @@ const kpiTotal = computed(() => filteredTotal.value.toLocaleString('fr-FR', { st
 const kpiProjects = computed(() => new Set(filteredData.value.map(row => row["Projet associé"]).filter(Boolean)).size.toLocaleString('fr-FR'));
 // Source cells hold an <a>: count distinct documents by their visible text
 const kpiSources = computed(() => new Set(filteredData.value.map(row => String(row["Source"] ?? '').replace(/<[^>]*>/g, '')).filter(Boolean)).size.toLocaleString('fr-FR'));
+// Actions = distinct Identifiant values
+const kpiActions = computed(() => new Set(filteredData.value.map(row => row["Identifiant"]).filter(Boolean)).size.toLocaleString('fr-FR'));
 const kpiFrom = computed(() => rangeLabels.value.from || introFirstYear);
 const kpiTo = computed(() => rangeLabels.value.to || introLastYear);
 
+const introActions = new Set(rawData.map(row => row["Identifiant"]).filter(Boolean)).size.toLocaleString('fr-FR');
 const introFirstYear = years[0];
 const introLastYear = years[years.length - 1];
 
@@ -383,13 +388,10 @@ const exportJson = () => {
 /* Text on the left, KPI cards on the right; notes span both. One column on narrow screens. */
 .intro-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
   gap: 8px 24px;
+  align-items: stretch; /* the KPI group is as tall as text + references */
   padding-top: 4px;
-}
-
-.intro-notes {
-  grid-column: 1 / -1;
 }
 
 @media (max-width: 800px) {
@@ -406,14 +408,26 @@ const exportJson = () => {
   color: var(--color-text);
 }
 
+.intro-side {
+  display: flex;
+  flex-direction: column;
+}
+
 .kpis {
+  flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 1fr);
   gap: 12px;
   margin: 8px 0 4px;
 }
 
 .kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   padding: 12px 16px;
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
@@ -423,13 +437,14 @@ const exportJson = () => {
 
 .kpi strong {
   display: block;
-  font-size: 1.6rem;
+  font-size: 2rem;
   line-height: 1.2;
   color: var(--color-progressive);
 }
 
 .kpis-range {
   margin: 0 0 8px;
+  text-align: center;
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }
