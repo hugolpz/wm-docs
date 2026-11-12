@@ -64,6 +64,7 @@
   --radius: 0;
   --shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.06);
   --shadow-hover: 0 6px 18px rgb(0 0 0 / 0.1);
+  --shadow-card: 0 2px 6px rgb(0 0 0 / 0.08), 0 8px 28px rgb(0 0 0 / 0.16);
   --shadow-modal: 0 21px 64px rgb(0 0 0 / 0.3);
   --focus-ring: 0 0 0 3px var(--color-interactive-subtle);
 
@@ -101,5 +102,6 @@
   --color-warning-text: #ffd27a;
   --shadow: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.35);
   --shadow-hover: 0 8px 24px rgb(0 0 0 / 0.45);
+  --shadow-card: 0 2px 6px rgb(0 0 0 / 0.5), 0 8px 28px rgb(0 0 0 / 0.65);
   --shadow-modal: 0 24px 72px rgb(0 0 0 / 0.65);
 }
