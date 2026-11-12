@@ -39,7 +39,8 @@ const route = useRoute();
   justify-content: space-between;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  padding: 12px 16px;
+  /* Align the title with the 1280px page container below */
+  padding: 12px max(16px, calc((100% - 1280px) / 2 + 16px));
 }
 .theme-toggle {
   display: inline-flex;
