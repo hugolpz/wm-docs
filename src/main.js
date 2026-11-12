@@ -3,11 +3,10 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
 import { groups } from './groups.js'
+import { applyTheme, initialTheme } from './theme.js'
 
-// Light/dark follows the OS; tokens.css reads data-theme
-document.documentElement.dataset.theme = window.matchMedia?.('(prefers-color-scheme: dark)').matches
-  ? 'dark'
-  : 'light'
+// Light/dark: the saved choice, else light; tokens.css reads data-theme
+applyTheme(initialTheme(), { persist: false })
 
 // Hash history: Toolforge's static hosting has no fallback to index.html for deep links.
 // Spendings keeps its column filters in the query string: #/wmfr?project=wikipages
