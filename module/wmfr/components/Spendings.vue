@@ -16,12 +16,32 @@
       </h2>
       <div class="subtitle-row">
         <p class="subtitle">Showing {{ paginatedData.length }} of {{ filteredData.length }} results</p>
-        <label id="wmg-wmfr-spendings-regex" class="regex-toggle" title="Treat the filters as case-insensitive regular expressions">
-          <input v-model="useRegex" type="checkbox" />
-          Regex
-        </label>
+        <div id="wmg-wmfr-spendings-tools" class="tools">
+          <label id="wmg-wmfr-spendings-regex" class="regex-toggle" title="Treat the filters as case-insensitive regular expressions">
+            <input v-model="useRegex" type="checkbox" />
+            Regex
+          </label>
+          <button
+            id="wmg-wmfr-spendings-export"
+            type="button"
+            class="export-btn"
+            :disabled="!filteredData.length"
+            title="Download the filtered rows as JSON"
+            @click="exportJson"
+          >
+            Export
+          </button>
+        </div>
       </div>
     </div>
+
+    <DateRange
+      id="wmg-wmfr-spendings-daterange"
+      :data="rawData"
+      :from="String(route.query.from ?? '')"
+      :to="String(route.query.to ?? '')"
+      @change="onDateChange"
+    />
 
     <div id="wmg-wmfr-spendings-table" class="table-container">
       <table class="spendings-table">
@@ -71,6 +91,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import DateRange from './DateRange.vue';
 import spendingsData from '../data/spendings_data.json';
 import commonsLogo from '../assets/Commons-logo.svg';
 
@@ -86,6 +107,7 @@ const columns = [
 ];
 
 // URL query parameter for each column filter, e.g. ?project=wikipages&date=2024
+// (?from=2023Q1&to=2024Q4 is the quarter range, handled by DateRange)
 const QUERY_PARAMS = {
   "Date": "date",
   "Montant TTC": "amount",
@@ -135,7 +157,7 @@ watch(() => route.query, () => {
 });
 
 const hasActiveFilter = computed(() => {
-  return columns.some(col => filters.value[col].trim() !== '');
+  return dateRange.value !== null || columns.some(col => filters.value[col].trim() !== '');
 });
 
 // Regex mode: one compiled RegExp per filled column; a column whose pattern doesn't compile is
@@ -158,8 +180,32 @@ const regexes = computed(() => {
 });
 const invalidCols = computed(() => regexes.value.invalid);
 
+// { from, to } from the quarter slider, null while the whole period is selected
+const dateRange = ref(null);
+
+// Slider -> URL: ?from=2023Q1&to=2024Q4, each omitted at its axis edge
+const onDateChange = ({ from, to, range }) => {
+  dateRange.value = range;
+  const query = { ...route.query };
+  if (from) query.from = from;
+  else delete query.from;
+  if (to) query.to = to;
+  else delete query.to;
+  const same = (k) => String(query[k] ?? '') === String(route.query[k] ?? '');
+  if (!same('from') || !same('to')) router.replace({ query });
+};
+
+const inDateRange = (row) => {
+  if (!dateRange.value) return true;
+  const m = String(row["Date"] ?? '').match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (!m) return false;
+  const t = Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  return t >= dateRange.value.from && t <= dateRange.value.to;
+};
+
 const filteredData = computed(() => {
   return rawData.filter(row => {
+    if (!inDateRange(row)) return false;
     return columns.every(col => {
       const filterValue = filters.value[col].toLowerCase();
       if (!filterValue.trim()) return true;
@@ -199,6 +245,17 @@ const formattedTotal = computed(() => {
     maximumFractionDigits: 2
   }) + ' €';
 });
+
+// Download every filtered row (not only the 100 displayed) as a JSON file
+const exportJson = () => {
+  const blob = new Blob([JSON.stringify(filteredData.value, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wmfr-spendings.json';
+  a.click();
+  URL.revokeObjectURL(url);
+};
 </script>
 
 <style scoped>
@@ -242,11 +299,34 @@ const formattedTotal = computed(() => {
   gap: 8px 16px;
 }
 
+.tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.export-btn {
+  padding: 2px 10px;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.export-btn:hover:not(:disabled) {
+  background: var(--color-surface-hover, var(--color-border));
+}
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .regex-toggle {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
   font-size: 0.9rem;
   color: var(--color-text-secondary);
   cursor: pointer;
