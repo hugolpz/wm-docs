@@ -350,6 +350,14 @@ const exportJson = () => {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
 }
 
+/* A horizontal scroller would become the sticky footer's scroll parent and pin it to the table
+   instead of the screen. Wide screens fit the table, so only narrow ones keep the scroller. */
+@media (min-width: 1100px) {
+  .table-container {
+    overflow: visible;
+  }
+}
+
 .spendings-table {
   width: 100%;
   border-collapse: collapse;
@@ -417,9 +425,14 @@ const exportJson = () => {
 
 .tfoot-row {
   background-color: var(--color-surface-muted);
-  border-top: 2px solid var(--color-border);
+}
+
+/* Sticky goes on the cells: a sticky <tr> is ignored by most browsers */
+.tfoot-row td {
   position: sticky;
   bottom: 0;
+  background-color: var(--color-surface-muted);
+  box-shadow: 0 -2px 0 var(--color-border);
 }
 
 .tfoot-label {
