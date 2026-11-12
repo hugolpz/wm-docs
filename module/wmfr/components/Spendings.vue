@@ -2,7 +2,7 @@
   <div id="wmg-wmfr-spendings" class="spendings-wrapper">
     <div id="wmg-wmfr-spendings-header" class="spendings-header">
       <h2>
-        WMFR's public spendings
+        Dépenses publiques de WMFR
         <a
           id="wmg-wmfr-spendings-commons"
           class="commons-link"
@@ -14,8 +14,42 @@
           <img :src="commonsLogo" alt="Wikimedia Commons" />
         </a>
       </h2>
+
+      <details id="wmg-wmfr-spendings-intro" class="intro" open>
+        <summary class="intro-summary">Présentation</summary>
+        <div class="intro-body">
+          <p>
+            Via Wikimédia France nous soutenons les projets collaboratifs libres (Wikipédia, Wikimedia Commons, Wikidata,
+            Wikisource…), les communautés et les contributrices et contributeurs qui les font vivre. Cette action n'existe que par la générosité des bénévoles, donatrices et donateurs, membres et partenaires.
+          </p>
+          <p>
+            Cette confiance appelle de la transparence. Depuis 2019, toutes les dépenses de l'association sont publiques
+            <sup><a id="wmg-wmfr-spendings-intro-ref-1" href="#wmg-wmfr-spendings-intro-note-1">[1]</a></sup>.
+            Chaque mois d'octobre, elles sont publiées sur Wikimedia Commons sous la forme de PDF mensuels publics mais peu digestes
+            <sup><a id="wmg-wmfr-spendings-intro-ref-2" href="#wmg-wmfr-spendings-intro-note-2">[2]</a></sup>.
+          </p>
+          <p>
+            Pour que chacun puisse s'y retrouver, ces données sont extraites et réunies ci-dessous en une base légère, facilement            explorable et partageable. Elle montre comment <strong id="wmg-wmfr-spendings-intro-total">{{ introTotal }}</strong>
+            ont été mis au service de <strong id="wmg-wmfr-spendings-intro-projects">{{ introProjects }}</strong> projets
+            et actions, de {{ introFirstYear }} à {{ introLastYear }}. Elle nous aide aussi à relire nos choix et à améliorer nos pratiques. Filtrez par colonne, par expression régulière ou par trimestre, puis partagez le lien ou exportez le résultat.
+          </p>
+          <ol class="intro-notes">
+            <li id="wmg-wmfr-spendings-intro-note-1">
+              <a href="https://commons.wikimedia.org/wiki/File:WMFr_Rapport_moral_2017-2018.pdf?page=4" target="_blank" rel="noopener">
+                WMFr, Rapport moral 2017-2018
+              </a>, p. 4.
+            </li>
+            <li id="wmg-wmfr-spendings-intro-note-2">
+              <a href="https://meta.wikimedia.org/wiki/Wikim%C3%A9dia_France/Finances/D%C3%A9pense" target="_blank" rel="noopener">
+                Dépenses de Wikimédia France
+              </a>, sur Méta-Wiki.
+            </li>
+          </ol>
+        </div>
+      </details>
+
       <div class="subtitle-row">
-        <p class="subtitle">Showing {{ paginatedData.length }} of {{ filteredData.length }} results</p>
+        <p class="subtitle">{{ paginatedData.length }} résultats affichées parmis {{ filteredData.length }} disponibles</p>
         <div id="wmg-wmfr-spendings-tools" class="tools">
           <label id="wmg-wmfr-spendings-regex" class="regex-toggle" title="Treat the filters as case-insensitive regular expressions">
             <input v-model="useRegex" type="checkbox" />
@@ -29,7 +63,7 @@
             title="Download the filtered rows as JSON"
             @click="exportJson"
           >
-            Export
+            Exporter
           </button>
         </div>
       </div>
@@ -74,7 +108,7 @@
             </td>
           </tr>
         </tbody>
-        <tfoot v-if="hasActiveFilter && paginatedData.length > 0">
+        <tfoot v-if="paginatedData.length > 0">
           <tr class="tfoot-row">
             <td class="td-styled tfoot-label">Total :</td>
             <td class="td-styled tfoot-total">
@@ -156,10 +190,6 @@ watch(() => route.query, () => {
   useRegex.value = route.query.regex === '1';
 });
 
-const hasActiveFilter = computed(() => {
-  return dateRange.value !== null || columns.some(col => filters.value[col].trim() !== '');
-});
-
 // Regex mode: one compiled RegExp per filled column; a column whose pattern doesn't compile is
 // flagged and matches nothing, so a half-typed pattern never throws.
 const regexes = computed(() => {
@@ -225,18 +255,25 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(0, 100);
 });
 
-// compute the total for Montant TTC column when filtered
+// "1 234,56 €" -> 1234.56 (0 when unparseable)
+const parseAmount = (valStr) => {
+  // Remove characters like '€' or spaces, and replace comma with dot for float parsing
+  const num = parseFloat(String(valStr || "").replace(/[^\d,\.-]/g, '').replace(',', '.'));
+  return isNaN(num) ? 0 : num;
+};
+
+// Total of the Montant TTC column over the filtered rows (all rows when nothing is filtered)
 const filteredTotal = computed(() => {
-  if (!hasActiveFilter.value) return 0;
-  
-  return filteredData.value.reduce((acc, row) => {
-    let valStr = row["Montant TTC"] || "";
-    // Remove characters like '€' or spaces, and replace comma with dot for float parsing
-    let numericStr = valStr.replace(/[^\d,\.-]/g, '').replace(',', '.');
-    let num = parseFloat(numericStr);
-    return acc + (isNaN(num) ? 0 : num);
-  }, 0);
+  return filteredData.value.reduce((acc, row) => acc + parseAmount(row["Montant TTC"]), 0);
 });
+
+// Intro figures cover the whole dataset, whatever the filters
+const introTotal = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+  .format(rawData.reduce((acc, row) => acc + parseAmount(row["Montant TTC"]), 0));
+const introProjects = new Set(rawData.map(row => row["Projet associé"]).filter(Boolean)).size.toLocaleString('fr-FR');
+const years = rawData.map(row => String(row["Date"]).slice(0, 4)).filter(Boolean).sort();
+const introFirstYear = years[0];
+const introLastYear = years[years.length - 1];
 
 const formattedTotal = computed(() => {
   // Format the number similar to French currency format
@@ -262,9 +299,9 @@ const exportJson = () => {
 .spendings-wrapper {
   background-color: var(--color-surface);
   border-radius: 12px;
-  box-shadow: var(--shadow-hover);
+  box-shadow: var(--shadow-card);
   padding: 24px;
-  margin: 16px 0;
+  margin: 16px 0 3rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--color-text);
 }
@@ -289,6 +326,42 @@ const exportJson = () => {
 .commons-link img {
   height: 1.4em;
   width: auto;
+}
+
+.intro {
+  margin: 12px 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.intro-summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+  user-select: none;
+}
+
+.intro-body {
+  padding-top: 4px;
+}
+
+.intro-body p {
+  margin: 8px 0;
+}
+
+.intro-body strong {
+  color: var(--color-text);
+}
+
+.intro-notes {
+  margin: 8px 0 0;
+  padding-left: 1.4em;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 
 .subtitle-row {
