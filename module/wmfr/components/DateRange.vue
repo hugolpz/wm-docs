@@ -38,7 +38,7 @@
 // Local, self-contained quarter-step range filter for rows dated "YYYY/MM/DD".
 // `from` / `to` are quarter labels ("2023Q1"); an empty or unknown one means the axis edge.
 // It emits `change` with { from, to, range }: the labels to store in the URL ("" at an edge)
-// and range = { from, to } (UTC Dates, inclusive), or null when the whole axis is selected.
+// fromLabel / toLabel = the selected quarters, edges included, and range = { from, to } (UTC Dates, inclusive), or null when the whole axis is selected.
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
@@ -114,11 +114,13 @@ const onInput = (which) => {
 
 const emitChange = () => {
   const list = quarters.value;
-  if (!list.length) return emit('change', { from: '', to: '', range: null });
+  if (!list.length) return emit('change', { from: '', to: '', fromLabel: '', toLabel: '', range: null });
   const last = list.length - 1;
   emit('change', {
     from: minValue.value === 0 ? '' : list[minValue.value].label,
     to: maxValue.value === last ? '' : list[maxValue.value].label,
+    fromLabel: list[minValue.value].label,
+    toLabel: list[maxValue.value].label,
     range: isFullRange.value ? null : { from: list[minValue.value].start, to: list[maxValue.value].end },
   });
 };

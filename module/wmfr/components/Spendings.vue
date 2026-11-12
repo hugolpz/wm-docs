@@ -18,21 +18,23 @@
       <details id="wmg-wmfr-spendings-intro" class="intro" open>
         <summary class="intro-summary">Présentation</summary>
         <div class="intro-body">
+          <div class="intro-text">
           <p>
             Via Wikimédia France nous soutenons les projets collaboratifs libres (Wikipédia, Wikimedia Commons, Wikidata,
             Wikisource…), les communautés et les contributrices et contributeurs qui les font vivre. Cette action n'existe que par la générosité des bénévoles, donatrices et donateurs, membres et partenaires.
           </p>
           <p>
             Cette confiance appelle de la transparence. Depuis 2019, toutes les dépenses de l'association sont publiques
-            <sup><a id="wmg-wmfr-spendings-intro-ref-1" href="#wmg-wmfr-spendings-intro-note-1">[1]</a></sup>.
+            <sup><a id="wmg-wmfr-spendings-intro-ref-1" href="#wmg-wmfr-spendings-intro-note-1" @click.prevent="scrollToNote('wmg-wmfr-spendings-intro-note-1')">[1]</a></sup>.
             Chaque mois d'octobre, elles sont publiées sur Wikimedia Commons sous la forme de PDF mensuels publics mais peu digestes
-            <sup><a id="wmg-wmfr-spendings-intro-ref-2" href="#wmg-wmfr-spendings-intro-note-2">[2]</a></sup>.
+            <sup><a id="wmg-wmfr-spendings-intro-ref-2" href="#wmg-wmfr-spendings-intro-note-2" @click.prevent="scrollToNote('wmg-wmfr-spendings-intro-note-2')">[2]</a></sup>.
           </p>
           <p>
             Pour que chacun puisse s'y retrouver, ces données sont extraites et réunies ci-dessous en une base légère, facilement            explorable et partageable. Elle montre comment <strong id="wmg-wmfr-spendings-intro-total">{{ introTotal }}</strong>
             ont été mis au service de <strong id="wmg-wmfr-spendings-intro-projects">{{ introProjects }}</strong> projets
             et actions, de {{ introFirstYear }} à {{ introLastYear }}. Elle nous aide aussi à relire nos choix et à améliorer nos pratiques. Filtrez par colonne, par expression régulière ou par trimestre, puis partagez le lien ou exportez le résultat.
           </p>
+
           <ol class="intro-notes">
             <li id="wmg-wmfr-spendings-intro-note-1">
               <a href="https://commons.wikimedia.org/wiki/File:WMFr_Rapport_moral_2017-2018.pdf?page=4" target="_blank" rel="noopener">
@@ -45,6 +47,23 @@
               </a>, sur Méta-Wiki.
             </li>
           </ol>
+          </div>
+
+          <div class="intro-side">
+          <div id="wmg-wmfr-spendings-intro-kpis" class="kpis">
+            <div id="wmg-wmfr-spendings-intro-kpi-total" class="kpi">
+              <strong>{{ kpiTotal }}</strong> réinvesti
+            </div>
+            <div id="wmg-wmfr-spendings-intro-kpi-projects" class="kpi">
+              <strong>{{ kpiProjects }}</strong> projets soutenus
+            </div>
+            <div id="wmg-wmfr-spendings-intro-kpi-sources" class="kpi">
+              <strong>{{ kpiSources }}</strong> documents financiers analysés
+            </div>
+          </div>
+          <p id="wmg-wmfr-spendings-intro-kpi-range" class="kpis-range">De {{ kpiFrom }} à {{ kpiTo }}.</p>
+          </div>
+
         </div>
       </details>
 
@@ -212,10 +231,13 @@ const invalidCols = computed(() => regexes.value.invalid);
 
 // { from, to } from the quarter slider, null while the whole period is selected
 const dateRange = ref(null);
+// Selected quarters ("2023Q1"), edges included, for the intro figures
+const rangeLabels = ref({ from: '', to: '' });
 
 // Slider -> URL: ?from=2023Q1&to=2024Q4, each omitted at its axis edge
-const onDateChange = ({ from, to, range }) => {
+const onDateChange = ({ from, to, fromLabel, toLabel, range }) => {
   dateRange.value = range;
+  rangeLabels.value = { from: fromLabel, to: toLabel };
   const query = { ...route.query };
   if (from) query.from = from;
   else delete query.from;
@@ -255,6 +277,11 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(0, 100);
 });
 
+// The app uses hash routing, so a plain href="#id" would be read as a route (#/id). Scroll by hand instead.
+const scrollToNote = (id) => {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
 // "1 234,56 €" -> 1234.56 (0 when unparseable)
 const parseAmount = (valStr) => {
   // Remove characters like '€' or spaces, and replace comma with dot for float parsing
@@ -272,6 +299,14 @@ const introTotal = new Intl.NumberFormat('fr-FR', { style: 'currency', currency:
   .format(rawData.reduce((acc, row) => acc + parseAmount(row["Montant TTC"]), 0));
 const introProjects = new Set(rawData.map(row => row["Projet associé"]).filter(Boolean)).size.toLocaleString('fr-FR');
 const years = rawData.map(row => String(row["Date"]).slice(0, 4)).filter(Boolean).sort();
+// Intro cards: they follow the filters (columns, regex and quarter range)
+const kpiTotal = computed(() => filteredTotal.value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }));
+const kpiProjects = computed(() => new Set(filteredData.value.map(row => row["Projet associé"]).filter(Boolean)).size.toLocaleString('fr-FR'));
+// Source cells hold an <a>: count distinct documents by their visible text
+const kpiSources = computed(() => new Set(filteredData.value.map(row => String(row["Source"] ?? '').replace(/<[^>]*>/g, '')).filter(Boolean)).size.toLocaleString('fr-FR'));
+const kpiFrom = computed(() => rangeLabels.value.from || introFirstYear);
+const kpiTo = computed(() => rangeLabels.value.to || introLastYear);
+
 const introFirstYear = years[0];
 const introLastYear = years[years.length - 1];
 
@@ -345,8 +380,22 @@ const exportJson = () => {
   user-select: none;
 }
 
+/* Text on the left, KPI cards on the right; notes span both. One column on narrow screens. */
 .intro-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 8px 24px;
   padding-top: 4px;
+}
+
+.intro-notes {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 800px) {
+  .intro-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .intro-body p {
@@ -355,6 +404,34 @@ const exportJson = () => {
 
 .intro-body strong {
   color: var(--color-text);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 8px 0 4px;
+}
+
+.kpi {
+  padding: 12px 16px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+}
+
+.kpi strong {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  color: var(--color-progressive);
+}
+
+.kpis-range {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
 }
 
 .intro-notes {
