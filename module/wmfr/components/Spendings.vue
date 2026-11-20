@@ -70,7 +70,7 @@
       </details>
 
       <div class="subtitle-row">
-        <p class="subtitle">{{ paginatedData.length }} dépenses affichées parmis {{ filteredData.length }} documentées</p>
+        <p class="subtitle">{{ paginatedData.length }} dépenses affichées parmis {{ filteredData.length }} correspondant à votre filtre</p>
         <div id="wmg-wmfr-spendings-tools" class="tools">
           <label id="wmg-wmfr-spendings-regex" class="regex-toggle" title="Treat the filters as case-insensitive regular expressions">
             <input v-model="useRegex" type="checkbox" />
@@ -146,12 +146,13 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { isAdmin } from '../../../../../auth/roles.js';
 import DateRange from './DateRange.vue';
-import spendingsData from '../data/spendings_data.json';
+import spendingsData from '../data/spendings_data.public.json';
 import commonsLogo from '../assets/Commons-logo.svg';
 
 const rawData = spendingsData;
-const columns = [
+const allColumns = [
   "Date", 
   "Montant TTC", 
   "Motif", 
@@ -160,6 +161,11 @@ const columns = [
   "Identifiant",
   "Source"
 ];
+
+// "Personne associée" is only shown to admins (the standalone wmg build has no '@/auth', hence the relative import)
+const columns = computed(() =>
+  isAdmin.value ? allColumns : allColumns.filter(col => col !== "Personne associée")
+);
 
 // URL query parameter for each column filter, e.g. ?project=wikipages&date=2024
 // (?from=2023Q1&to=2024Q4 is the quarter range, handled by DateRange)
@@ -177,7 +183,7 @@ const route = useRoute();
 const router = useRouter();
 
 const readFilters = () =>
-  Object.fromEntries(columns.map(col => [col, String(route.query[QUERY_PARAMS[col]] ?? "")]));
+  Object.fromEntries(allColumns.map(col => [col, String(route.query[QUERY_PARAMS[col]] ?? "")]));
 
 const filters = ref(readFilters());
 
@@ -187,7 +193,7 @@ const useRegex = ref(route.query.regex === '1');
 // Filters -> URL (replace, so typing doesn't fill the history)
 watch(filters, (value) => {
   const query = { ...route.query };
-  for (const col of columns) {
+  for (const col of columns.value) {
     const param = QUERY_PARAMS[col];
     if (value[col].trim()) query[param] = value[col];
     else delete query[param];
@@ -207,7 +213,7 @@ watch(useRegex, () => {
 // URL -> filters (back/forward, pasted links)
 watch(() => route.query, () => {
   const fromUrl = readFilters();
-  if (columns.some(col => fromUrl[col] !== filters.value[col])) filters.value = fromUrl;
+  if (allColumns.some(col => fromUrl[col] !== filters.value[col])) filters.value = fromUrl;
   useRegex.value = route.query.regex === '1';
 });
 
@@ -217,7 +223,7 @@ const regexes = computed(() => {
   const compiled = {};
   const invalid = new Set();
   if (useRegex.value) {
-    for (const col of columns) {
+    for (const col of columns.value) {
       const pattern = filters.value[col].trim();
       if (!pattern) continue;
       try {
@@ -260,7 +266,7 @@ const inDateRange = (row) => {
 const filteredData = computed(() => {
   return rawData.filter(row => {
     if (!inDateRange(row)) return false;
-    return columns.every(col => {
+    return columns.value.every(col => {
       const filterValue = filters.value[col].toLowerCase();
       if (!filterValue.trim()) return true;
       // Source cells hold HTML: filter on their visible text only

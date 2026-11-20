@@ -1,12 +1,13 @@
 # Rebuild the module's generated data:
 #  - data/spendings_data.json: WMFR PDFs (Commons) + legacy TSV + Meta-Wiki expense pages
+#  - data/spendings_data.public.json: the same rows with names masked (the file the page imports)
 # Usage: make -f master.mk [PYTHON=path/to/python]
 # Requires: pdfplumber
 PYTHON ?= python3
 DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))scripts/
 
-.PHONY: all download fetch_meta extract merge
-all: merge
+.PHONY: all download fetch_meta extract merge anonymize
+all: anonymize
 
 # Fetch the PDFs of Commons' Category:Wikimedia_France_expenses into sources/pdfs/ (skips existing)
 download:
@@ -24,3 +25,7 @@ fetch_meta:
 merge: extract fetch_meta
 	$(PYTHON) $(DIR)merge_tsv.py
 	$(PYTHON) $(DIR)merge_meta.py
+
+# Derive the public file (staff -> [WMFR_staff], others -> [name in source]) from the merged data
+anonymize: merge
+	$(PYTHON) $(DIR)anonymize.py
