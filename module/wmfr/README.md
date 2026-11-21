@@ -7,7 +7,7 @@ Searchable table of the Wikimedia France (WMFR) spendings: every column is filte
 | `WmfrView.vue` | The view: breadcrumb + the table |
 | `components/Spendings.vue` | The table |
 | `data/spendings_data.json` | Generated data, with real names (private source) |
-| `data/spendings_data.public.json` | Derived by `scripts/anonymize.py` (names in "Personne associée", "Motif", "Identifiant" and the "Source" text: staff -> `[WMFR_staff]`, others -> `[name in source]`), imported by `Spendings.vue` |
+| `data/spendings_data.public.json` | Derived by `scripts/anonymize.py` (names in "Personne associée", "Motif", "Identifiant" and the "Source" text: staff -> `[staff_WMFr]`, others -> `[nom_masqué]`), imported by `Spendings.vue` |
 | `scripts/`, `master.mk` | Python pipeline that builds the data |
 | `sources/` | `legacy_table.tsv` (2020-07 – 2021); git-ignored downloads: `pdfs/`, `meta_expenses.json` |
 

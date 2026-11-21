@@ -1,9 +1,9 @@
 """Derive data/spendings_data.public.json from spendings_data.json.
 
 In "Personne associée" (parts separated by " – "):
-  - staff of Wikimédia France (names seen with a "WMFr" suffix, typos tolerated) -> [WMFR_staff]
+  - staff of Wikimédia France (names seen with a "WMFr" suffix, typos tolerated) -> [staff_WMFr]
   - process notes ("Par µFi", ...) and organisations are kept
-  - any other person, username or typo -> [name in source]
+  - any other person, username or typo -> [nom_masqué]
 Names found elsewhere ("Motif", "Identifiant", the visible text of "Source") are masked the same way.
 Names come from the "Personne associée" column, the STAFF list and EXTRA_NAMES below. The href of a
 "Source" link is left alone so the link keeps working.
@@ -27,7 +27,7 @@ def record(original, tag):
     FOUND.setdefault((original.strip(), tag), {}).setdefault(CURRENT[0], 0)
     FOUND[(original.strip(), tag)][CURRENT[0]] += 1
 
-STAFF_TAG, OTHER_TAG = "[WMFR_staff]", "[name in source]"
+STAFF_TAG, OTHER_TAG = "[staff_WMFr]", "[nom_masqué]"
 
 def norm(s):
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower()

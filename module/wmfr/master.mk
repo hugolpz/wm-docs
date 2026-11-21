@@ -26,6 +26,6 @@ merge: extract fetch_meta
 	$(PYTHON) $(DIR)merge_tsv.py
 	$(PYTHON) $(DIR)merge_meta.py
 
-# Derive the public file (staff -> [WMFR_staff], others -> [name in source]) from the merged data
+# Derive the public file (staff -> [staff_WMFr], others -> [nom_masqué]) from the merged data
 anonymize: merge
 	$(PYTHON) $(DIR)anonymize.py
