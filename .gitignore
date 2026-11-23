@@ -6,3 +6,9 @@ __pycache__/
 module/*/sources/pdfs/
 module/*/sources/*.pdf
 module/*/sources/meta_expenses.json
+
+# Real names behind the pseudonyms (WMFr anonymization): never commit
+module/wmfr/sources/names.tsv
+module/wmfr/sources/pseudonyms.tsv
+module/wmfr/sources/anonymized_items.tsv
+module/wmfr/data/spendings_data.json
