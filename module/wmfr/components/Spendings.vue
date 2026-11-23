@@ -146,7 +146,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { isAdmin } from '../../../../../auth/roles.js';
 import DateRange from './DateRange.vue';
 import spendingsData from '../data/spendings_data.public.json';
 import commonsLogo from '../assets/Commons-logo.svg';
@@ -162,10 +161,8 @@ const allColumns = [
   "Source"
 ];
 
-// "Personne associée" is only shown to admins (the standalone wmg build has no '@/auth', hence the relative import)
-const columns = computed(() =>
-  isAdmin.value ? allColumns : allColumns.filter(col => col !== "Personne associée")
-);
+// Names are pseudonymised in the public data (scripts/anonymize.py), so every column is shown to everyone
+const columns = allColumns;
 
 // URL query parameter for each column filter, e.g. ?project=wikipages&date=2024
 // (?from=2023Q1&to=2024Q4 is the quarter range, handled by DateRange)
