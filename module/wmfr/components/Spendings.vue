@@ -190,7 +190,7 @@ const useRegex = ref(route.query.regex === '1');
 // Filters -> URL (replace, so typing doesn't fill the history)
 watch(filters, (value) => {
   const query = { ...route.query };
-  for (const col of columns.value) {
+  for (const col of columns) {
     const param = QUERY_PARAMS[col];
     if (value[col].trim()) query[param] = value[col];
     else delete query[param];
@@ -220,7 +220,7 @@ const regexes = computed(() => {
   const compiled = {};
   const invalid = new Set();
   if (useRegex.value) {
-    for (const col of columns.value) {
+    for (const col of columns) {
       const pattern = filters.value[col].trim();
       if (!pattern) continue;
       try {
@@ -263,7 +263,7 @@ const inDateRange = (row) => {
 const filteredData = computed(() => {
   return rawData.filter(row => {
     if (!inDateRange(row)) return false;
-    return columns.value.every(col => {
+    return columns.every(col => {
       const filterValue = filters.value[col].toLowerCase();
       if (!filterValue.trim()) return true;
       // Source cells hold HTML: filter on their visible text only
